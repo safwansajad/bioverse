@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Data files (keep structure, ignore large outputs)
+data/output/*.dna.txt
+data/output/*.key
+data/output/recovered_*
+
+# AI model (large binary)
+ai/dna_lstm_model.h5
+
+# Streamlit
+.streamlit/
