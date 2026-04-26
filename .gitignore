@@ -27,8 +27,12 @@ data/output/*.dna.txt
 data/output/*.key
 data/output/recovered_*
 
-# AI model (large binary)
-ai/dna_lstm_model.h5
+# AI model — KEEP committed so the deployed app can load it without training
+# ai/dna_lstm_model.h5
 
-# Streamlit
-.streamlit/
+# Streamlit — keep config.toml committed; ignore only secrets
+.streamlit/secrets.toml
+
+# Benchmarks — generated artifacts, do not commit
+benchmarks/_work/
+benchmarks/results.json
