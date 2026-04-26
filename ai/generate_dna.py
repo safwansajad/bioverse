@@ -36,17 +36,30 @@ def _check_tensorflow():
 
 
 def _get_model():
-    """Load LSTM model on first use (lazy initialization)."""
-    global _model
+    """Load LSTM model on first use (lazy initialization).
+
+    Returns None if the model cannot be loaded (e.g. Keras version mismatch
+    between training and runtime). Callers should fall back to the Markov
+    generator in that case.
+    """
+    global _model, _tf_available
     if _model is None:
         if not os.path.exists(MODEL_PATH):
             raise FileNotFoundError(
                 f"LSTM model not found at {MODEL_PATH}. "
                 f"Run 'python ai/train_lstm.py' first."
             )
-        from tensorflow.keras.models import load_model
-        _model = load_model(MODEL_PATH)
-        logger.info("LSTM DNA model loaded successfully")
+        try:
+            from tensorflow.keras.models import load_model
+            _model = load_model(MODEL_PATH, compile=False)
+            logger.info("LSTM DNA model loaded successfully")
+        except Exception as e:
+            logger.warning(
+                "Failed to load LSTM model (%s); falling back to Markov generator.",
+                e,
+            )
+            _tf_available = False
+            return None
     return _model
 
 
@@ -112,6 +125,8 @@ def generate_dna(length=300, temperature=0.8):
     from tensorflow.keras.utils import to_categorical
 
     model = _get_model()
+    if model is None:
+        return _generate_dna_fallback(length, temperature)
     seed = random.choice(list(mapping.keys()))
     sequence = seed
 
