@@ -17,6 +17,8 @@ BioVerse is an AI-assisted DNA data encoding system that converts digital files 
 - [Project Structure](#project-structure)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Benchmark Suite](#benchmark-suite)
+- [Deployment](#deployment)
 - [Screenshots](#screenshots)
 - [DNA File Format](#dna-file-format)
 - [Technology Stack](#technology-stack)
@@ -72,6 +74,9 @@ A formal benchmarking module that produces **IEEE-ready metrics** comparing naiv
 | **Evaluation Framework** | Quantitative benchmarks for IEEE-format reporting |
 | **Streamlit Web UI** | Encode, decode, analyze, and evaluate with real-time statistics |
 | **Fully Reversible Pipeline** | End-to-end file recovery with integrity verification |
+| **Pre-Trained LSTM Model** | Ships with `dna_lstm_model.h5` for instant AI fingerprinting (no training needed) |
+| **IEEE Benchmark Suite** | Reproducible measurements with LaTeX-ready tables for the research paper |
+| **One-Click Deployment** | Streamlit Cloud ready (`.streamlit/config.toml`, `runtime.txt`, `packages.txt`) |
 
 ---
 
@@ -105,6 +110,7 @@ bioverse/
 │   ├── dataset.py            # DNA sequence dataset loader
 │   ├── dna_analysis.py       # Realism scoring (GC, entropy, freq)
 │   ├── dna_data.txt          # Training data (real genomic sequences)
+│   ├── dna_lstm_model.h5     # Pre-trained LSTM model (ready to use)
 │   ├── generate_dna.py       # LSTM + Markov fallback DNA generator
 │   ├── train_lstm.py         # Model training script
 │   ├── watermark.py          # Dual-purpose watermark (integrity + camouflage)
@@ -118,6 +124,12 @@ bioverse/
 │   └── evaluation.py         # ★ NOVEL: Quantitative evaluation framework
 ├── ui/
 │   └── app.py                # Streamlit web interface (4 tabs)
+├── benchmarks/               # ★ NEW: IEEE benchmark suite
+│   ├── run_benchmarks.py     # Reproducible measurements (encode/decode/ECC/tamper)
+│   ├── results.json          # Raw benchmark numbers
+│   └── tables.tex            # LaTeX-ready table fragments for the paper
+├── .streamlit/
+│   └── config.toml           # Streamlit theme + upload limits
 ├── data/
 │   ├── input/                # Uploaded files
 │   └── output/               # Encoded DNA files, keys, recovered files
@@ -125,7 +137,9 @@ bioverse/
 │   └── bioverse_ieee.tex     # IEEE-format research paper
 ├── test_core.py              # Unit tests (8 tests incl. novel features)
 ├── test_e2e.py               # End-to-end pipeline test
-├── requirements.txt
+├── requirements.txt          # Python dependencies
+├── runtime.txt               # Python version pin (deployment)
+├── packages.txt              # System packages (deployment)
 ├── .gitignore
 ├── LICENSE
 └── README.md
@@ -142,12 +156,14 @@ cd bioverse
 
 # Create virtual environment (recommended)
 python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS/Linux
+source venv/bin/activate     # macOS/Linux
+# venv\Scripts\activate     # Windows
 
 # Install dependencies
 pip install -r requirements.txt
 ```
+
+> A pre-trained LSTM model (`ai/dna_lstm_model.h5`) is included, so AI fingerprinting works out of the box — no training step required.
 
 ---
 
@@ -196,11 +212,61 @@ python test_core.py    # 8 unit tests
 python test_e2e.py     # End-to-end pipeline
 ```
 
-### Train the LSTM Model
+### Train the LSTM Model (optional)
+
+A pre-trained model is bundled. To retrain on your own DNA corpus:
 
 ```bash
 cd ai
 python train_lstm.py
+```
+
+---
+
+## Benchmark Suite
+
+Reproducible IEEE-paper measurements live in [benchmarks/](benchmarks/). The suite reports:
+
+1. **Pipeline performance** — encode/decode time and throughput across file sizes (mean ± std over N runs)
+2. **Constraint compliance** — naive vs constrained encoding on real input data
+3. **Error-injection resilience** — random base substitutions vs Reed–Solomon recovery success
+4. **Tamper detection** — base flips vs embedded SHA-256 integrity check
+
+Run the full suite:
+
+```bash
+python -m benchmarks.run_benchmarks
+```
+
+Outputs:
+
+- [benchmarks/results.json](benchmarks/results.json) — raw numbers
+- [benchmarks/tables.tex](benchmarks/tables.tex) — LaTeX-ready table fragments consumed by [paper/bioverse_ieee.tex](paper/bioverse_ieee.tex)
+
+---
+
+## Deployment
+
+BioVerse is configured for **one-click deployment to [Streamlit Community Cloud](https://streamlit.io/cloud)**:
+
+| File | Purpose |
+|---|---|
+| [`requirements.txt`](requirements.txt) | Python dependencies |
+| [`runtime.txt`](runtime.txt) | Python version pin (`python-3.11`) |
+| [`packages.txt`](packages.txt) | System packages (`build-essential`) |
+| [`.streamlit/config.toml`](.streamlit/config.toml) | Dark theme + 50 MB upload limit + headless server |
+
+**Deploy steps:**
+
+1. Push the repository to GitHub
+2. On Streamlit Cloud, create a new app pointing at this repo
+3. Set the main file to `ui/app.py`
+4. Click **Deploy** — the bundled LSTM model loads automatically
+
+For local production use:
+
+```bash
+streamlit run ui/app.py --server.port 8501 --server.headless true
 ```
 
 ---
